@@ -1,0 +1,35 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+<PageTitle>Тест</PageTitle>
+
+<MudButton OnClick="@LoadSimpleData" Variant="Variant.Filled" Color="Color.Primary">
+    Загрузить
+</MudButton>
+
+@if (items != null)
+{
+    <MudText>Загружено: @items.Count</MudText>
+
+    @foreach (var item in items)
+    {
+        <MudPaper Class="pa-2 mt-2">
+            @item
+        </MudPaper>
+    }
+}
+
+@code {
+    List<string> items;
+
+    private void LoadSimpleData()
+    {
+        items = new List<string>
+        {
+            "Тест 1",
+            "Тест 2",
+            "Тест 3"
+        };
+    }
+}

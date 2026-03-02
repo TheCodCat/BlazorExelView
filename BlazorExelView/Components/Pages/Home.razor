@@ -1,0 +1,62 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using BlazorExelView.model
+@using services
+@inject FileExelService exelSystem
+<PageTitle>Поручения</PageTitle>
+
+<MudButton OnClick="@LoadData">
+    Получить таблицу
+    </MudButton>
+
+    <MudSelect T="string">
+        <MudSelectItem T="string">asdasdasd</MudSelectItem>
+        <MudSelectItem T="string">asdasdasdww</MudSelectItem>
+        <MudSelectItem T="string">wasdasdasd</MudSelectItem>
+    </MudSelect>
+
+@if (values.Any())
+{
+    <MudTable Items="@values">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h2">Поручения</MudText>
+        </ToolBarContent>   
+        <HeaderContent>
+
+            <MudTh Typo="Typo.h6">ID</MudTh>
+            <MudTh Typo="Typo.h6">Исполнитель</MudTh>
+            <MudTh Typo="Typo.h6">Значение</MudTh>
+            <MudTh Typo="Typo.h6">Поручение</MudTh>
+
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd @attributes="context.classBG">@context.IDView</MudTd>
+            <MudTd @attributes="context.classBG">@context.Name</MudTd>
+            <MudTd @attributes="context.classBG">@context.State</MudTd>
+            <MudTd @attributes="context.classBG">@context.Description</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+}
+else
+{
+    <MudText Class="mt-4">Файл не загружен или пуст</MudText>
+}
+
+
+@code{
+    List<Worker> values = new List<Worker>();
+    List<List<Worker>> dataWorkers = new List<List<Worker>>();
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task LoadData()
+    {
+        dataWorkers = await exelSystem.LoadFilePages("per_2026.xlsx");
+        values = dataWorkers[0];
+    }
+}
