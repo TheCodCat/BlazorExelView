@@ -41,10 +41,10 @@ namespace BlazorExelView.services
             }
             return workers;
         }
-        public async Task<List<List<Worker>>> LoadFilePages(string urlstr)
+        public async Task<Dictionary<string,List<Worker>>> LoadFilePages(string urlstr)
         {
             FileInfo fileInfo = new FileInfo(urlstr);
-            List<List<Worker>> pagesWorker = new List<List<Worker>>();
+            Dictionary<string, List<Worker>> pagesWorker = new Dictionary<string, List<Worker>>();
             if (fileInfo.Exists)
             {
                 using (ExcelPackage package = new ExcelPackage(fileInfo))
@@ -78,7 +78,7 @@ namespace BlazorExelView.services
                             }
                         }
                         var sorted = await SortWorkers(workers);
-                        pagesWorker.Add(sorted);
+                        pagesWorker.Add(excelWorksheet.Name,sorted);
                     }
                 }
 

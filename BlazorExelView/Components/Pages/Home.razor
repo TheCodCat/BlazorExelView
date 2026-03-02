@@ -5,23 +5,27 @@
 @inject FileExelService exelSystem
 <PageTitle>Поручения</PageTitle>
 
-<MudButton OnClick="@LoadData">
-    Получить таблицу
+    <MudButton OnClick="@LoadData">
+        Получить таблицу
     </MudButton>
 
-    <MudSelect T="string">
-        <MudSelectItem T="string">asdasdasd</MudSelectItem>
-        <MudSelectItem T="string">asdasdasdww</MudSelectItem>
-        <MudSelectItem T="string">wasdasdasd</MudSelectItem>
-    </MudSelect>
 
-@if (values.Any())
+@if (values != null)
 {
+    <select
+        @onchange="@ChangePage"
+        class="mud-select-input">
+        @foreach (var worker in dataWorkers)
+        {
+            <option value="@worker.Key">@worker.Key</option>
+        }
+    </select>
+
     <MudTable Items="@values">
 
         <ToolBarContent>
             <MudText Typo="Typo.h2">Поручения</MudText>
-        </ToolBarContent>   
+        </ToolBarContent>
         <HeaderContent>
 
             <MudTh Typo="Typo.h6">ID</MudTh>
@@ -46,17 +50,19 @@ else
 }
 
 
-@code{
+@code {
     List<Worker> values = new List<Worker>();
-    List<List<Worker>> dataWorkers = new List<List<Worker>>();
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-    }
+    Dictionary<string, List<Worker>> dataWorkers = new Dictionary<string, List<Worker>> ();
 
     private async Task LoadData()
     {
         dataWorkers = await exelSystem.LoadFilePages("per_2026.xlsx");
-        values = dataWorkers[0];
+        values = dataWorkers.Values.First();
+    }
+
+    private async void ChangePage(ChangeEventArgs arg)
+    {
+        var result = dataWorkers[arg.Value.ToString()];
+        values = result;
     }
 }
