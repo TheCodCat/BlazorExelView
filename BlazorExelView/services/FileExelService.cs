@@ -1,5 +1,7 @@
 ﻿using BlazorExelView.model;
 using OfficeOpenXml;
+using System.Reflection.Metadata;
+using System.Text.Json;
 
 namespace BlazorExelView.services
 {
@@ -43,49 +45,69 @@ namespace BlazorExelView.services
         }
         public async Task<Dictionary<string,List<Worker>>> LoadFilePages(string urlstr)
         {
-            FileInfo fileInfo = new FileInfo(urlstr);
             Dictionary<string, List<Worker>> pagesWorker = new Dictionary<string, List<Worker>>();
-            if (fileInfo.Exists)
+            using (var httpclient = new HttpClient())
             {
-                using (ExcelPackage package = new ExcelPackage(fileInfo))
+                string url = $"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={Uri.EscapeDataString(urlstr)}";
+                var json = await httpclient.GetStringAsync(url);
+                using JsonDocument doc = JsonDocument.Parse(json);
+                JsonElement root = doc.RootElement;
+                string downloadUrl = root.GetProperty("href").GetString();
+
+                byte[] buffer = await httpclient.GetByteArrayAsync(downloadUrl);
+
+                using (var stream = new MemoryStream(buffer)) 
                 {
-                    foreach (var excelWorksheet in package.Workbook.Worksheets)
+                    using (ExcelPackage package = new ExcelPackage(stream))
                     {
-                        List<Worker> workers = new List<Worker>();
-                        var totalCols = excelWorksheet.Dimension.End.Column;
-                        var totalrow = 100;
-                        for (int i = 3; i < totalCols; i++)
+                        foreach (var excelWorksheet in package.Workbook.Worksheets)
                         {
-                            var workername = excelWorksheet.Cells[1, i].Value;
-                            var workWorker = excelWorksheet.Cells[2, i].Value;
-                            if (workername == null) continue;
+                            List<Worker> workers = new List<Worker>();
 
-
-                            for (int j = 2; j < totalrow; j++)
+                            var totalrow = 100;
+                            var totalCols = 3;
+                            while (true)
                             {
-                                var organization = excelWorksheet.GetValue(j, 2);
-                                if (string.Equals(organization, "ГАПОУ СО «Самарский государственный колледж»"))
+                                if (excelWorksheet.Cells[1, totalCols].Value is string)
+                                    totalCols++;
+                                else
+                                    break;
+                            }
+
+
+                            for (int i = 3; i < totalCols; i++)
+                            {
+                                var workername = excelWorksheet.Cells[1, i].Value;
+                                var workWorker = excelWorksheet.Cells[2, i].Value;
+                                if (workername == null) continue;
+
+
+                                for (int j = 2; j < totalrow; j++)
                                 {
-                                    Worker worker = new Worker(workername?.ToString() ?? "непонятно", i - 2);
-                                    worker.Description = workWorker.ToString();
+                                    var organization = excelWorksheet.GetValue(j, 2);
+                                    if (string.Equals(organization, "ГАПОУ СО «Самарский государственный колледж»"))
+                                    {
+                                        Worker worker = new Worker(workername?.ToString() ?? "непонятно", i - 2);
+                                        worker.Description = workWorker is string ? workWorker.ToString() : string.Empty;
 
-                                    var valueWorker = excelWorksheet.GetValue(j, i);
-                                    worker.State = valueWorker != null ? valueWorker.ToString()  : null;
-                                    worker.Init();
+                                        var valueWorker = excelWorksheet.GetValue(j, i);
+                                        worker.State = valueWorker is string ? valueWorker.ToString()  : string.Empty;
+                                        worker.Init();
 
-                                    workers.Add(worker);
+                                        workers.Add(worker);
+                                    }
                                 }
                             }
+                            var sorted = await SortWorkers(workers);
+                            pagesWorker.Add(excelWorksheet.Name,sorted);
                         }
-                        var sorted = await SortWorkers(workers);
-                        pagesWorker.Add(excelWorksheet.Name,sorted);
                     }
                 }
-
             }
+
+
             return pagesWorker;
         }
-
         private async Task<List<Worker>> SortWorkers(List<Worker> workers)
         {
             var sort = workers.GroupBy(x => x.ID);

@@ -8,8 +8,8 @@ namespace BlazorExelView.model
         public int ID { get; set; }
         public string IDView { get; set; }
         public string Name { get; set; }
-        public string State { get; set; }
-        public string Description { get; set; }
+        public string State { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public Dictionary<string, object> classBG { get; set; }
 
         public Worker(string name, int iD)

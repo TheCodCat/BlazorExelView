@@ -14,7 +14,7 @@
             Выберите назвние таблицы
         </MudText>
 
-    @if (values != null && values.Any())
+    @if (dataWorkers.Any())
     {
         <select @onchange="@ChangePage"
                 class="form-select">
@@ -53,12 +53,11 @@
             </RowTemplate>
         </MudTable>
     }
+    else
+    {
+        <MudText Class="mt-4">Файл не загружен или пуст</MudText>
+    }
 
-
-}
-else
-{
-    <MudText Class="mt-4">Файл не загружен или пуст</MudText>
 }
 
 
@@ -68,7 +67,8 @@ else
 
     private async Task LoadData()
     {
-        dataWorkers = await exelSystem.LoadFilePages("per_2026.xlsx");
+        //dataWorkers = await exelSystem.LoadFilePages("per_2026.xlsx");
+        dataWorkers = await exelSystem.LoadFilePages("https://disk.yandex.ru/i/VHKmAv08izIWsw");
         values = dataWorkers.Values.First();
     }
 
