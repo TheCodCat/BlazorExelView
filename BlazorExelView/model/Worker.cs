@@ -1,7 +1,4 @@
-﻿using MudBlazor;
-using MudBlazor.Utilities;
-
-namespace BlazorExelView.model
+﻿namespace BlazorExelView.model
 {
     public class Worker
     {

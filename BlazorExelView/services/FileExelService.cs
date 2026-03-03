@@ -1,7 +1,5 @@
 ﻿using BlazorExelView.model;
 using OfficeOpenXml;
-using System;
-using System.Reflection.Metadata;
 using System.Text.Json;
 
 namespace BlazorExelView.services
@@ -32,7 +30,8 @@ namespace BlazorExelView.services
                         for (int j = 2; j < totalrow; j++)
                         {
                             var organization = excelWorksheet.GetValue(j, 2);
-                            if(string.Equals(organization, "ГБПОУ СО «Самарский государственный колледж»")){
+                            if (string.Equals(organization, "ГБПОУ СО «Самарский государственный колледж»"))
+                            {
                                 var valueWorker = excelWorksheet.GetValue(j, i);
                                 worker.State = valueWorker != null ? valueWorker.ToString() : "Не в работе";
                             }
@@ -44,7 +43,7 @@ namespace BlazorExelView.services
             }
             return workers;
         }
-        public async Task<Dictionary<string,List<Worker>>> LoadFilePages(string urlstr)
+        public async Task<Dictionary<string, List<Worker>>> LoadFilePages(string urlstr)
         {
             try
             {
@@ -59,7 +58,7 @@ namespace BlazorExelView.services
 
                     byte[] buffer = await httpclient.GetByteArrayAsync(downloadUrl);
 
-                    using (var stream = new MemoryStream(buffer)) 
+                    using (var stream = new MemoryStream(buffer))
                     {
                         using (ExcelPackage package = new ExcelPackage(stream))
                         {
@@ -67,12 +66,25 @@ namespace BlazorExelView.services
                             {
                                 List<Worker> workers = new List<Worker>();
 
-                                var totalrow = 100;
+                                var totalrow = 3;
+                                while (true)
+                                {
+                                    if (excelWorksheet.Cells[totalrow, 2].Value is string)
+                                    {
+                                        totalrow++;
+                                        //Console.WriteLine($"{totalrow} строка");
+                                    }
+                                    else
+                                        break;
+                                }
                                 var totalCols = 3;
                                 while (true)
                                 {
                                     if (excelWorksheet.Cells[1, totalCols].Value is string)
+                                    {
                                         totalCols++;
+                                        //Console.WriteLine($"{totalCols} колонна");
+                                    }
                                     else
                                         break;
                                 }
@@ -94,7 +106,7 @@ namespace BlazorExelView.services
                                             worker.Description = workWorker is string ? workWorker.ToString() : string.Empty;
 
                                             var valueWorker = excelWorksheet.GetValue(j, i);
-                                            worker.State = valueWorker is string ? valueWorker.ToString()  : string.Empty;
+                                            worker.State = valueWorker is string ? valueWorker.ToString() : string.Empty;
                                             worker.Init();
 
                                             workers.Add(worker);
@@ -102,7 +114,7 @@ namespace BlazorExelView.services
                                     }
                                 }
                                 var sorted = await SortWorkers(workers);
-                                pagesWorker.Add(excelWorksheet.Name,sorted);
+                                pagesWorker.Add(excelWorksheet.Name, sorted);
                             }
                         }
                     }
@@ -121,7 +133,7 @@ namespace BlazorExelView.services
             List<Worker> sortedWorker = new List<Worker>();
             foreach (var item in sort)
             {
-                if(item.Count() > 1)
+                if (item.Count() > 1)
                 {
                     int index = 0;
                     foreach (var work in item)

@@ -1,0 +1,9 @@
+services:
+  blazorexelview:
+    image: ${DOCKER_REGISTRY-}blazorexelview
+    build:
+      context: .
+      dockerfile: BlazorExelView/Dockerfile
+    ports:
+      - "11011:8080"
+      - "11012:8081"
