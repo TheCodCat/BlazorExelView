@@ -5,43 +5,55 @@
 @inject FileExelService exelSystem
 <PageTitle>Поручения</PageTitle>
 
-    <MudButton OnClick="@LoadData">
-        Получить таблицу
-    </MudButton>
+<MudStack Row="false" Style="width : 30%">
+        <MudButton OnClick="@LoadData" Variant="Variant.Filled" Color="Color.Primary">
+            Получить таблицу
+        </MudButton>
+
+        <MudText Typo="Typo.body1">
+            Выберите назвние таблицы
+        </MudText>
+
+    @if (values != null && values.Any())
+    {
+        <select @onchange="@ChangePage"
+                class="form-select">
+            @foreach (var worker in dataWorkers)
+            {
+                <option value="@worker.Key">@worker.Key</option>
+            }
+        </select>
+    }
+    </MudStack>
 
 
 @if (values != null)
 {
-    <select
-        @onchange="@ChangePage"
-        class="mud-select-input">
-        @foreach (var worker in dataWorkers)
-        {
-            <option value="@worker.Key">@worker.Key</option>
-        }
-    </select>
+    @if (values.Any())
+    {
+        <MudTable Items="@values">
 
-    <MudTable Items="@values">
+            <ToolBarContent>
+                <MudText Typo="Typo.h2">Поручения</MudText>
+            </ToolBarContent>
+            <HeaderContent>
 
-        <ToolBarContent>
-            <MudText Typo="Typo.h2">Поручения</MudText>
-        </ToolBarContent>
-        <HeaderContent>
+                <MudTh Typo="Typo.h6">ID</MudTh>
+                <MudTh Typo="Typo.h6">Исполнитель</MudTh>
+                <MudTh Typo="Typo.h6">Значение</MudTh>
+                <MudTh Typo="Typo.h6">Поручение</MudTh>
 
-            <MudTh Typo="Typo.h6">ID</MudTh>
-            <MudTh Typo="Typo.h6">Исполнитель</MudTh>
-            <MudTh Typo="Typo.h6">Значение</MudTh>
-            <MudTh Typo="Typo.h6">Поручение</MudTh>
+            </HeaderContent>
 
-        </HeaderContent>
+            <RowTemplate>
+                <MudTd @attributes="context.classBG">@context.IDView</MudTd>
+                <MudTd @attributes="context.classBG">@context.Name</MudTd>
+                <MudTd @attributes="context.classBG">@context.State</MudTd>
+                <MudTd @attributes="context.classBG">@context.Description</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
 
-        <RowTemplate>
-            <MudTd @attributes="context.classBG">@context.IDView</MudTd>
-            <MudTd @attributes="context.classBG">@context.Name</MudTd>
-            <MudTd @attributes="context.classBG">@context.State</MudTd>
-            <MudTd @attributes="context.classBG">@context.Description</MudTd>
-        </RowTemplate>
-    </MudTable>
 
 }
 else
