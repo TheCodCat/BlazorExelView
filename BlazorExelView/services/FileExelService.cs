@@ -45,68 +45,74 @@ namespace BlazorExelView.services
         }
         public async Task<Dictionary<string,List<Worker>>> LoadFilePages(string urlstr)
         {
-            Dictionary<string, List<Worker>> pagesWorker = new Dictionary<string, List<Worker>>();
-            using (var httpclient = new HttpClient())
+            try
             {
-                string url = $"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={Uri.EscapeDataString(urlstr)}";
-                var json = await httpclient.GetStringAsync(url);
-                using JsonDocument doc = JsonDocument.Parse(json);
-                JsonElement root = doc.RootElement;
-                string downloadUrl = root.GetProperty("href").GetString();
-
-                byte[] buffer = await httpclient.GetByteArrayAsync(downloadUrl);
-
-                using (var stream = new MemoryStream(buffer)) 
+                Dictionary<string, List<Worker>> pagesWorker = new Dictionary<string, List<Worker>>();
+                using (var httpclient = new HttpClient())
                 {
-                    using (ExcelPackage package = new ExcelPackage(stream))
+                    string url = $"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={Uri.EscapeDataString(urlstr)}";
+                    var json = await httpclient.GetStringAsync(url);
+                    using JsonDocument doc = JsonDocument.Parse(json);
+                    JsonElement root = doc.RootElement;
+                    string downloadUrl = root.GetProperty("href").GetString();
+
+                    byte[] buffer = await httpclient.GetByteArrayAsync(downloadUrl);
+
+                    using (var stream = new MemoryStream(buffer)) 
                     {
-                        foreach (var excelWorksheet in package.Workbook.Worksheets)
+                        using (ExcelPackage package = new ExcelPackage(stream))
                         {
-                            List<Worker> workers = new List<Worker>();
-
-                            var totalrow = 100;
-                            var totalCols = 3;
-                            while (true)
+                            foreach (var excelWorksheet in package.Workbook.Worksheets)
                             {
-                                if (excelWorksheet.Cells[1, totalCols].Value is string)
-                                    totalCols++;
-                                else
-                                    break;
-                            }
+                                List<Worker> workers = new List<Worker>();
 
-
-                            for (int i = 3; i < totalCols; i++)
-                            {
-                                var workername = excelWorksheet.Cells[1, i].Value;
-                                var workWorker = excelWorksheet.Cells[2, i].Value;
-                                if (workername == null) continue;
-
-
-                                for (int j = 2; j < totalrow; j++)
+                                var totalrow = 100;
+                                var totalCols = 3;
+                                while (true)
                                 {
-                                    var organization = excelWorksheet.GetValue(j, 2);
-                                    if (string.Equals(organization, "ГАПОУ СО «Самарский государственный колледж»"))
+                                    if (excelWorksheet.Cells[1, totalCols].Value is string)
+                                        totalCols++;
+                                    else
+                                        break;
+                                }
+
+
+                                for (int i = 3; i < totalCols; i++)
+                                {
+                                    var workername = excelWorksheet.Cells[1, i].Value;
+                                    var workWorker = excelWorksheet.Cells[2, i].Value;
+                                    if (workername == null) continue;
+
+
+                                    for (int j = 2; j < totalrow; j++)
                                     {
-                                        Worker worker = new Worker(workername?.ToString() ?? "непонятно", i - 2);
-                                        worker.Description = workWorker is string ? workWorker.ToString() : string.Empty;
+                                        var organization = excelWorksheet.GetValue(j, 2);
+                                        if (string.Equals(organization, "ГАПОУ СО «Самарский государственный колледж»"))
+                                        {
+                                            Worker worker = new Worker(workername?.ToString() ?? "непонятно", i - 2);
+                                            worker.Description = workWorker is string ? workWorker.ToString() : string.Empty;
 
-                                        var valueWorker = excelWorksheet.GetValue(j, i);
-                                        worker.State = valueWorker is string ? valueWorker.ToString()  : string.Empty;
-                                        worker.Init();
+                                            var valueWorker = excelWorksheet.GetValue(j, i);
+                                            worker.State = valueWorker is string ? valueWorker.ToString()  : string.Empty;
+                                            worker.Init();
 
-                                        workers.Add(worker);
+                                            workers.Add(worker);
+                                        }
                                     }
                                 }
+                                var sorted = await SortWorkers(workers);
+                                pagesWorker.Add(excelWorksheet.Name,sorted);
                             }
-                            var sorted = await SortWorkers(workers);
-                            pagesWorker.Add(excelWorksheet.Name,sorted);
                         }
                     }
                 }
+                return pagesWorker;
+            }
+            catch (Exception ex)
+            {
+                return new Dictionary<string, List<Worker>>();
             }
 
-
-            return pagesWorker;
         }
         private async Task<List<Worker>> SortWorkers(List<Worker> workers)
         {

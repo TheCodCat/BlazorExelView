@@ -10,6 +10,8 @@
             Получить таблицу
         </MudButton>
 
+        <MudTextField T="string" @bind-Value="@urlYandex" Label="Ссылка на таблицу" Variant="Variant.Text"></MudTextField>
+
         <MudText Typo="Typo.body1">
             Выберите назвние таблицы
         </MudText>
@@ -63,13 +65,17 @@
 
 @code {
     List<Worker> values = new List<Worker>();
-    Dictionary<string, List<Worker>> dataWorkers = new Dictionary<string, List<Worker>> ();
+    Dictionary<string, List<Worker>> dataWorkers = new Dictionary<string, List<Worker>>();
+    string urlYandex = "https://disk.yandex.ru/i/VHKmAv08izIWsw";
 
     private async Task LoadData()
     {
         //dataWorkers = await exelSystem.LoadFilePages("per_2026.xlsx");
-        dataWorkers = await exelSystem.LoadFilePages("https://disk.yandex.ru/i/VHKmAv08izIWsw");
-        values = dataWorkers.Values.First();
+        dataWorkers = await exelSystem.LoadFilePages(urlYandex);
+        if (dataWorkers.Any())
+            values = dataWorkers.Values.First();
+        else
+            values = new List<Worker>();
     }
 
     private async void ChangePage(ChangeEventArgs arg)
