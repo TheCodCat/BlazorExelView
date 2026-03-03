@@ -1,5 +1,6 @@
 ﻿using BlazorExelView.model;
 using OfficeOpenXml;
+using System;
 using System.Reflection.Metadata;
 using System.Text.Json;
 
@@ -120,13 +121,24 @@ namespace BlazorExelView.services
             List<Worker> sortedWorker = new List<Worker>();
             foreach (var item in sort)
             {
-                int index = 0;
-                foreach (var work in item)
+                if(item.Count() > 1)
                 {
-                    index++;
+                    int index = 0;
+                    foreach (var work in item)
+                    {
+                        index++;
 
-                    work.IDView = $"{work.ID}.{index}";
-                    sortedWorker.Add(work);
+                        work.IDView = $"{work.ID}.{index}";
+                        sortedWorker.Add(work);
+                    }
+                }
+                else
+                {
+                    foreach (var work in item)
+                    {
+                        work.IDView = $"{work.ID}";
+                        sortedWorker.Add(work);
+                    }
                 }
             }
             return sortedWorker;
